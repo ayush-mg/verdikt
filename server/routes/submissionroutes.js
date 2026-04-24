@@ -1,6 +1,7 @@
 const express=require('express')
 const router=express.Router()
 const Submission=require('../models/Submission.model.js')
+const Judgment=require('../models/Judgment.model.js')
 const{upload,cloudinary}=require('../utils/cloudinary.js')
 const authmiddleware=require('../middleware/authmiddleware.js')
 const assignjudges=require('../services/matchingalgorithm.js')
@@ -29,6 +30,7 @@ router.post('/',authmiddleware,upload.single('image'),async(req,res)=>{
 			status:selectedjudges.length>0?'under_review':'pending_assignment'
 		})
 		const savedsubmission=await newsubmission.save()
+		await require('../models/User.model.js').findByIdAndUpdate(req.user.userid,{$inc:{totalsubmissions:1}})
 		res.status(201).json(savedsubmission)
 	}catch(error){
 		res.status(500).json({message:'ServerError'})
@@ -44,11 +46,29 @@ router.get('/my',authmiddleware,async(req,res)=>{
 })
 router.get('/queue',authmiddleware,async(req,res)=>{
 	try{
+		// Find IDs of submissions this user has already judged
+		const alreadyjudged=await Judgment.find({judgeid:req.user.userid}).select('submissionid')
+		const judgedids=alreadyjudged.map(j=>j.submissionid.toString())
+
+		// Show all under_review submissions where:
+		// 1. Current user is NOT the submitter
+		// 2. Current user has NOT already judged it
 		const queue=await Submission.find({
-			assignedjudgeids:req.user.userid,
-			status:'underreview'
+			submitterid:{$ne:req.user.userid},
+			status:'under_review',
+			_id:{$nin:judgedids}
 		})
 		res.status(200).json(queue)
+	}catch(error){
+		console.error(error)
+		res.status(500).json({message:'ServerError'})
+	}
+})
+router.get('/:id',authmiddleware,async(req,res)=>{
+	try{
+		const submission=await Submission.findById(req.params.id)
+		if(!submission) return res.status(404).json({message:'NotFound'})
+		res.status(200).json(submission)
 	}catch(error){
 		res.status(500).json({message:'ServerError'})
 	}
@@ -56,6 +76,7 @@ router.get('/queue',authmiddleware,async(req,res)=>{
 router.get('/:id/feedback',authmiddleware,async(req,res)=>{
 	try{
 		const submission=await Submission.findById(req.params.id)
+		if(!submission) return res.status(404).json({message:'NotFound'})
 		if(submission.status!=='completed'){
 			return res.status(403).json({message:'FeedbackNotUnlocked'})
 		}
@@ -65,4 +86,4 @@ router.get('/:id/feedback',authmiddleware,async(req,res)=>{
 		res.status(500).json({message:'ServerError'})
 	}
 })
-module.exports=router
+module.exports=router

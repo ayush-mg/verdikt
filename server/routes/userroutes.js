@@ -12,7 +12,7 @@ router.get('/leaderboard',authmiddleware,async(req,res)=>{
 })
 router.get('/profile',authmiddleware,async(req,res)=>{
 	try{
-		const user=await User.findById(req.user.userid).select('-password')
+		const user=await User.findById(req.user.userid).select('-passwordhash')
 		res.status(200).json(user)
 	}catch(error){
 		res.status(500).json({message:'ServerError'})
