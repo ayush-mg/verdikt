@@ -9,24 +9,31 @@ import VerdictForm from './pages/VerdictForm.jsx'
 import FeedbackReveal from './pages/FeedbackReveal.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
 import Profile from './pages/Profile.jsx'
+import SubmissionDetail from './pages/SubmissionDetail.jsx'
 
 const App = () => {
   return (
     <AuthProvider>
       <Router>
         <Routes>
+          {/* Public */}
           <Route path="/login" element={<AuthPage />} />
           <Route path="/register" element={<Navigate to="/login" />} />
-<Route path="/" element={<ProtectedRoute><Dashboard/></ProtectedRoute>}/>
-<Route path="/submit" element={<ProtectedRoute><SubmitWork/></ProtectedRoute>}/>
-<Route path="/queue" element={<ProtectedRoute><JudgeQueue/></ProtectedRoute>}/>
-<Route path="/judge/:id" element={<ProtectedRoute><VerdictForm/></ProtectedRoute>}/>
-<Route path="/feedback/:id" element={<ProtectedRoute><FeedbackReveal/></ProtectedRoute>}/>
-<Route path="/leaderboard" element={<ProtectedRoute><Leaderboard/></ProtectedRoute>}/>
-<Route path="/profile" element={<ProtectedRoute><Profile/></ProtectedRoute>}/>
-</Routes>
-</Router>
-</AuthProvider>
-)
+          {/* Protected */}
+          <Route path="/"                 element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/submit"           element={<ProtectedRoute><SubmitWork /></ProtectedRoute>} />
+          <Route path="/queue"            element={<ProtectedRoute><JudgeQueue /></ProtectedRoute>} />
+          <Route path="/judge/:id"        element={<ProtectedRoute><VerdictForm /></ProtectedRoute>} />
+          <Route path="/feedback/:id"     element={<ProtectedRoute><FeedbackReveal /></ProtectedRoute>} />
+          <Route path="/leaderboard"      element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+          <Route path="/profile"          element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/submission/:id"   element={<ProtectedRoute><SubmissionDetail /></ProtectedRoute>} />
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  )
 }
+
 export default App

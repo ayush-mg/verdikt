@@ -9,78 +9,118 @@ const Profile = () => {
 	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
-		const fetchprofile = async () => {
-			try {
-				const res = await axiosinstance.get('/users/profile')
-				setuserprofile(res.data)
-			} catch (error) {
-				console.log(error)
-			} finally {
-				setLoading(false)
-			}
-		}
-		fetchprofile()
+		axiosinstance.get('/users/profile')
+			.then(r => setuserprofile(r.data))
+			.catch(e => console.error(e))
+			.finally(() => setLoading(false))
 	}, [])
 
-	if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-purple"></div></div>
-	if (!userprofile) return <p className="text-center text-gray-400 mt-20">Failed to load profile.</p>
+	if (loading) return (
+		<div className="flex justify-center items-center py-32">
+			<div className="spinner w-8 h-8" />
+		</div>
+	)
 
-    const historyData = userprofile.submissionmerithistory?.map((h, i) => ({
-        name: `Sub ${i + 1}`,
-        score: parseFloat(h.score).toFixed(2)
-    })) || []
+	if (!userprofile) return (
+		<div className="alert-error max-w-md mx-auto mt-20">Failed to load profile.</div>
+	)
+
+	const historyData = userprofile.submissionmerithistory?.map((h, i) => ({
+		name: `#${i + 1}`,
+		score: parseFloat(parseFloat(h.score).toFixed(2))
+	})) || []
+
+	const stats = [
+		{
+			label: 'Merit Score',
+			value: (userprofile.submissionmeritscore || 0).toFixed(2),
+			sub: 'Submission average',
+			icon: <Award size={20} className="text-ink-3" />,
+			valueClass: 'text-score'
+		},
+		{
+			label: 'Submissions',
+			value: userprofile.totalsubmissions || 0,
+			sub: 'Total submitted',
+			icon: <FileText size={20} className="text-ink-3" />,
+			valueClass: 'text-ink'
+		},
+		{
+			label: 'Judged',
+			value: userprofile.totaljudged || 0,
+			sub: 'Judgments given',
+			icon: <CheckCircle size={20} className="text-ink-3" />,
+			valueClass: 'text-ink'
+		},
+	]
 
 	return (
-		<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="space-y-8">
-			<div className="flex items-center gap-6 glass-panel p-8">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-brand-purple to-brand-brown-light flex items-center justify-center shadow-lg shadow-brand-purple/20">
-                    <User size={48} className="text-white opacity-80" />
-                </div>
-                <div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">{userprofile.username}</h1>
-                    <p className="text-gray-400 flex items-center gap-2 mt-1">{userprofile.email}</p>
-                </div>
+		<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="max-w-3xl mx-auto space-y-6">
+			{/* Identity card */}
+			<div className="card p-7 flex items-center gap-5">
+				<div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center text-white text-2xl font-bold shadow-sm">
+					{userprofile.username.charAt(0).toUpperCase()}
+				</div>
+				<div>
+					<h1 className="text-xl font-bold text-ink">{userprofile.username}</h1>
+					<p className="text-ink-3 text-sm mt-0.5">{userprofile.email}</p>
+					<p className="text-xs text-ink-4 mt-1">
+						Member since {new Date(userprofile.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+					</p>
+				</div>
 			</div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="glass-panel p-6 flex flex-col justify-center items-center text-center">
-                    <Award size={32} className="text-brand-purple-light mb-2" />
-                    <p className="text-gray-400 text-sm">Merit Score</p>
-                    <p className="text-3xl font-bold mt-1">{(userprofile.submissionmeritscore || 0).toFixed(1)}</p>
-                </div>
-                <div className="glass-panel p-6 flex flex-col justify-center items-center text-center">
-                    <FileText size={32} className="text-brand-brown-light mb-2" />
-                    <p className="text-gray-400 text-sm">Total Submissions</p>
-                    <p className="text-3xl font-bold mt-1">{userprofile.totalsubmissions || 0}</p>
-                </div>
-                <div className="glass-panel p-6 flex flex-col justify-center items-center text-center">
-                    <CheckCircle size={32} className="text-green-400 mb-2" />
-                    <p className="text-gray-400 text-sm">Total Judged</p>
-                    <p className="text-3xl font-bold mt-1">{userprofile.totaljudged || 0}</p>
-                </div>
-            </div>
+			{/* Stats row */}
+			<div className="grid grid-cols-3 gap-4">
+				{stats.map((s, i) => (
+					<motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="card p-5">
+						<div className="flex items-center justify-between mb-3">
+							<span className="section-label mb-0">{s.label}</span>
+							{s.icon}
+						</div>
+						<p className={`text-3xl font-bold ${s.valueClass}`}>{s.value}</p>
+						<p className="text-xs text-ink-4 mt-1">{s.sub}</p>
+					</motion.div>
+				))}
+			</div>
 
-            <div className="glass-panel p-6 h-96">
-                <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                    <Award size={20} className="text-brand-purple-light" />
-                    Merit Progression
-                </h2>
-                {historyData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="80%">
-                        <LineChart data={historyData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                            <XAxis dataKey="name" stroke="#9ca3af" />
-                            <YAxis stroke="#9ca3af" />
-                            <Tooltip contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '0.5rem' }} />
-                            <Line type="monotone" dataKey="score" stroke="#a855f7" strokeWidth={3} dot={{ r: 4, fill: '#a855f7' }} activeDot={{ r: 8 }} />
-                        </LineChart>
-                    </ResponsiveContainer>
-                ) : (
-                    <div className="h-4/5 flex items-center justify-center text-gray-500">
-                        No merit history available yet.
-                    </div>
-                )}
-            </div>
+			{/* Merit progression chart */}
+			<div className="card p-6">
+				<h2 className="text-sm font-bold text-ink-2 uppercase tracking-wide mb-5 flex items-center gap-2">
+					<Award size={16} /> Merit Score Progression
+				</h2>
+				{historyData.length > 0 ? (
+					<ResponsiveContainer width="100%" height={220}>
+						<LineChart data={historyData} margin={{ top: 4, right: 8, bottom: 4, left: -16 }}>
+							<CartesianGrid strokeDasharray="3 3" stroke="#e0deda" />
+							<XAxis dataKey="name" stroke="#b8b5b0" tick={{ fontSize: 12 }} />
+							<YAxis stroke="#b8b5b0" tick={{ fontSize: 12 }} domain={[0, 5]} />
+							<Tooltip
+								contentStyle={{
+									backgroundColor: '#fff',
+									borderColor: '#e0deda',
+									borderRadius: 10,
+									fontSize: 13,
+									color: '#111'
+								}}
+							/>
+							<Line
+								type="monotone"
+								dataKey="score"
+								stroke="#2d5a27"
+								strokeWidth={2.5}
+								dot={{ r: 4, fill: '#2d5a27', strokeWidth: 0 }}
+								activeDot={{ r: 6 }}
+							/>
+						</LineChart>
+					</ResponsiveContainer>
+				) : (
+					<div className="h-48 flex flex-col items-center justify-center text-ink-4">
+						<Award size={28} className="mb-2 opacity-40" />
+						<p className="text-sm">No history yet. Get your submissions judged!</p>
+					</div>
+				)}
+			</div>
 		</motion.div>
 	)
 }

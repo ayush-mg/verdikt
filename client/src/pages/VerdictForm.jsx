@@ -2,148 +2,164 @@ import { useState, useEffect } from 'react'
 import axiosinstance from '../api/axios.js'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Gavel, Star, ThumbsUp, AlertTriangle, HelpCircle, XCircle, FileText, Link as LinkIcon, Image as ImageIcon, ArrowLeft } from 'lucide-react'
+import {
+	Gavel, Star, ThumbsUp, AlertTriangle, HelpCircle, XCircle,
+	ArrowLeft, FileText, Link as LinkIcon, Image as ImageIcon, AlertCircle
+} from 'lucide-react'
+
+const RATINGS = [
+	{ id: 'elegant',    label: 'Elegant',    icon: <Star size={20} />,           hint: 'Outstanding — very impressed' },
+	{ id: 'solid',      label: 'Solid',      icon: <ThumbsUp size={20} />,       hint: 'Good, well-executed work' },
+	{ id: 'needswork',  label: 'Needs Work', icon: <AlertTriangle size={20} />,  hint: 'Some issues to address' },
+	{ id: 'confusing',  label: 'Confusing',  icon: <HelpCircle size={20} />,     hint: 'Hard to understand' },
+	{ id: 'incomplete', label: 'Incomplete', icon: <XCircle size={20} />,        hint: 'Appears unfinished' },
+]
+
+const RATING_COLORS = {
+	elegant:    { active: 'bg-amber-50 border-amber-300 text-amber-800',   idle: 'border-border' },
+	solid:      { active: 'bg-green-50 border-green-300 text-green-800',   idle: 'border-border' },
+	needswork:  { active: 'bg-orange-50 border-orange-300 text-orange-800',idle: 'border-border' },
+	confusing:  { active: 'bg-red-50 border-red-300 text-red-800',         idle: 'border-border' },
+	incomplete: { active: 'bg-gray-100 border-gray-400 text-gray-700',     idle: 'border-border' },
+}
 
 const VerdictForm = () => {
 	const { id } = useParams()
 	const navigate = useNavigate()
 	const [verdict, setverdict] = useState('solid')
 	const [review, setreview] = useState('')
-    const [submitting, setSubmitting] = useState(false)
+	const [submitting, setSubmitting] = useState(false)
 	const [submission, setsubmission] = useState(null)
-	const [loadingsubmission, setloadingsubmission] = useState(true)
+	const [loadingsub, setloadingsub] = useState(true)
 	const [errormsg, seterrormsg] = useState('')
 
 	useEffect(() => {
-		const fetchsubmission = async () => {
-			try {
-				// Fetch submission directly by ID
-				const res = await axiosinstance.get(`/submissions/${id}`)
-				setsubmission(res.data)
-			} catch (error) {
-				console.error(error)
-				seterrormsg('Could not load submission details.')
-			} finally {
-				setloadingsubmission(false)
-			}
-		}
-		fetchsubmission()
+		axiosinstance.get(`/submissions/${id}`)
+			.then(r => setsubmission(r.data))
+			.catch(() => seterrormsg('Could not load submission details.'))
+			.finally(() => setloadingsub(false))
 	}, [id])
 
 	const handlesubmit = async (e) => {
 		e.preventDefault()
-		if(!review.trim()){
-			seterrormsg('Please write a review before submitting.')
-			return
-		}
-        setSubmitting(true)
+		if (!review.trim()) { seterrormsg('Please write a feedback review.'); return }
+		setSubmitting(true)
 		seterrormsg('')
 		try {
 			await axiosinstance.post('/judgments', { submissionid: id, verdict, review })
 			navigate('/queue')
-		} catch (error) {
-			const msg = error.response?.data?.message
-			if(msg === 'AlreadyJudged') seterrormsg('You have already judged this submission.')
-			else if(msg === 'CannotJudgeOwnWork') seterrormsg('You cannot judge your own submission.')
-			else seterrormsg(msg || 'An error occurred. Please try again.')
-			console.error(error)
-        } finally {
-            setSubmitting(false)
-        }
+		} catch (err) {
+			const msg = err.response?.data?.message
+			if (msg === 'AlreadyJudged') seterrormsg('You have already judged this submission.')
+			else if (msg === 'CannotJudgeOwnWork') seterrormsg('You cannot judge your own submission.')
+			else seterrormsg(msg || 'Submission failed. Please try again.')
+		} finally {
+			setSubmitting(false)
+		}
 	}
 
-    const ratingOptions = [
-        { id: 'elegant', label: 'Elegant', icon: <Star size={24} />, color: 'text-yellow-400', border: 'border-yellow-400/50', bg: 'bg-yellow-400/10' },
-        { id: 'solid', label: 'Solid', icon: <ThumbsUp size={24} />, color: 'text-green-400', border: 'border-green-400/50', bg: 'bg-green-400/10' },
-        { id: 'needswork', label: 'Needs Work', icon: <AlertTriangle size={24} />, color: 'text-orange-400', border: 'border-orange-400/50', bg: 'bg-orange-400/10' },
-        { id: 'confusing', label: 'Confusing', icon: <HelpCircle size={24} />, color: 'text-red-400', border: 'border-red-400/50', bg: 'bg-red-400/10' },
-        { id: 'incomplete', label: 'Incomplete', icon: <XCircle size={24} />, color: 'text-gray-400', border: 'border-gray-400/50', bg: 'bg-gray-400/10' }
-    ]
-
 	return (
-		<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="max-w-3xl mx-auto">
-            <button onClick={() => navigate('/queue')} className="inline-flex items-center gap-2 text-gray-400 hover:text-brand-purple-light transition-colors font-medium mb-6">
-                <ArrowLeft size={18} /> Back to Queue
-            </button>
+		<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="max-w-2xl mx-auto">
+			<button onClick={() => navigate('/queue')} className="btn-ghost mb-6">
+				<ArrowLeft size={16} /> Back to Queue
+			</button>
 
-            <div className="flex items-center gap-4 mb-8">
-                <div className="p-4 bg-brand-brown-light/20 rounded-xl">
-                    <Gavel size={32} className="text-brand-brown-light" />
-                </div>
-                <div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Submit Verdict</h1>
-                    <p className="text-gray-400 mt-1">Review the submission below and give constructive feedback.</p>
-                </div>
-            </div>
+			<div className="flex items-center gap-3 mb-6">
+				<div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
+					<Gavel size={20} className="text-white" />
+				</div>
+				<div>
+					<h1 className="text-2xl font-bold text-ink">Submit Verdict</h1>
+					<p className="text-ink-3 text-sm">Review the submission and give honest, constructive feedback.</p>
+				</div>
+			</div>
 
-            {/* Submission Preview */}
-            {loadingsubmission ? (
-                <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-purple"></div></div>
-            ) : submission ? (
-                <div className="glass-panel p-6 mb-8 border-l-4 border-l-brand-purple">
-                    <div className="flex items-center gap-3 mb-4">
-                        {submission.type === 'code' && <FileText size={20} className="text-brand-purple-light" />}
-                        {submission.type === 'text' && <FileText size={20} className="text-blue-400" />}
-                        {submission.type === 'url' && <LinkIcon size={20} className="text-green-400" />}
-                        {submission.type === 'image' && <ImageIcon size={20} className="text-pink-400" />}
-                        <span className="font-bold text-lg capitalize">{submission.type} Submission</span>
-                        <span className="ml-auto px-3 py-1 rounded-full bg-brand-grey-dark border border-gray-600 text-xs font-semibold uppercase tracking-wider text-gray-300">{submission.category}</span>
-                    </div>
-                    {submission.type === 'image' && submission.contenturl ? (
-                        <img src={submission.contenturl} alt="Submission" className="w-full rounded-xl max-h-80 object-contain bg-black/20" />
-                    ) : submission.type === 'url' ? (
-                        <a href={submission.contenturl} target="_blank" rel="noopener noreferrer" className="text-brand-purple-light hover:underline break-all">{submission.contenturl}</a>
-                    ) : (
-                        <pre className="bg-brand-grey-dark/80 p-4 rounded-xl border border-gray-700/50 text-gray-300 text-sm whitespace-pre-wrap break-words max-h-72 overflow-auto font-mono leading-relaxed">{submission.contenttext || '(No content)'}</pre>
-                    )}
-                </div>
-            ) : null}
+			{/* Submission preview */}
+			{loadingsub ? (
+				<div className="card p-8 flex justify-center mb-6"><div className="spinner w-5 h-5" /></div>
+			) : submission && (
+				<div className="card-accent p-5 mb-6">
+					<div className="flex items-center gap-2 mb-3">
+						{(submission.type === 'code' || submission.type === 'text') && <FileText size={15} className="text-ink-3" />}
+						{submission.type === 'url' && <LinkIcon size={15} className="text-ink-3" />}
+						{submission.type === 'image' && <ImageIcon size={15} className="text-ink-3" />}
+						<span className="text-sm font-semibold text-ink-2 capitalize">{submission.type} · {submission.category}</span>
+					</div>
+					{submission.type === 'image' && submission.contenturl ? (
+						<img src={submission.contenturl} alt="Submission" className="w-full rounded-lg max-h-72 object-contain bg-raised" />
+					) : submission.type === 'url' ? (
+						<a href={submission.contenturl} target="_blank" rel="noopener noreferrer" className="text-info hover:underline break-all text-sm">{submission.contenturl}</a>
+					) : (
+						<pre className="bg-raised border border-border p-4 rounded-lg text-sm text-ink-2 font-mono whitespace-pre-wrap break-words max-h-64 overflow-auto leading-relaxed">
+							{submission.contenttext || '(no content)'}
+						</pre>
+					)}
+				</div>
+			)}
 
-            {/* Error Message */}
-            {errormsg && (
-                <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-xl text-sm text-center font-medium mb-6">
-                    {errormsg}
-                </div>
-            )}
+			{errormsg && (
+				<div className="alert-error mb-5">
+					<AlertCircle size={15} className="flex-shrink-0" /> {errormsg}
+				</div>
+			)}
 
-			<form onSubmit={handlesubmit} className="glass-panel p-8 space-y-8">
-                <div>
-                    <label className="block text-sm font-semibold text-gray-300 mb-4 uppercase tracking-wider">Your Rating</label>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                        {ratingOptions.map(opt => (
-                            <div 
-                                key={opt.id}
-                                onClick={() => setverdict(opt.id)}
-                                className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center gap-3 transition-all ${verdict === opt.id ? `${opt.bg} ${opt.border} ${opt.color} shadow-inner scale-105` : 'bg-brand-grey-dark/50 border-gray-700 hover:border-gray-500 text-gray-400 hover:text-gray-200'}`}
-                            >
-                                {opt.icon}
-                                <span className="font-bold text-sm text-center">{opt.label}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+			<form onSubmit={handlesubmit} className="card p-7 flex flex-col gap-7">
+				{/* Rating */}
+				<div>
+					<p className="section-label">Your Rating</p>
+					<div className="grid grid-cols-5 gap-2">
+						{RATINGS.map(opt => {
+							const active = verdict === opt.id
+							const c = RATING_COLORS[opt.id]
+							return (
+								<button
+									key={opt.id}
+									type="button"
+									onClick={() => setverdict(opt.id)}
+									title={opt.hint}
+									className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-sm font-semibold transition-all duration-150 ${
+										active ? c.active : `bg-surface ${c.idle} text-ink-3 hover:bg-raised hover:text-ink-2`
+									}`}
+								>
+									{opt.icon}
+									<span className="text-xs text-center leading-tight">{opt.label}</span>
+								</button>
+							)
+						})}
+					</div>
+					{verdict && (
+						<p className="text-xs text-ink-3 mt-2 text-center italic">
+							{RATINGS.find(r => r.id === verdict)?.hint}
+						</p>
+					)}
+				</div>
 
-                <div>
-                    <label className="block text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Detailed Feedback</label>
-                    <textarea 
-                        value={review} 
-                        onChange={(e) => setreview(e.target.value)} 
-                        maxLength="800" 
-                        required
-                        placeholder="Explain your verdict. Be constructive and specific..."
-                        className="input-field min-h-[150px]"
-                    />
-                    <div className="text-right text-xs text-gray-500 mt-2 font-mono">
-                        {review.length} / 800
-                    </div>
-                </div>
+				{/* Review */}
+				<div>
+					<p className="section-label">Written Feedback</p>
+					<textarea
+						value={review}
+						onChange={(e) => setreview(e.target.value)}
+						maxLength={800}
+						required
+						placeholder="Be specific and constructive. What works well? What could be improved?"
+						className="input-field min-h-[140px] resize-y"
+					/>
+					<div className="flex justify-between items-center mt-1.5">
+						<p className="text-xs text-ink-4">Be respectful and constructive</p>
+						<p className={`text-xs font-mono ${review.length > 720 ? 'text-danger' : 'text-ink-4'}`}>
+							{review.length}/800
+						</p>
+					</div>
+				</div>
 
-                <div className="pt-4 border-t border-gray-700/50 flex justify-end gap-4">
-                    <button type="button" onClick={() => navigate('/queue')} className="btn-secondary">Cancel</button>
-                    <button type="submit" disabled={submitting} className={`btn-primary ${submitting ? 'opacity-70 cursor-not-allowed' : ''}`}>
-                        {submitting ? 'Submitting...' : 'Confirm Judgment'}
-                    </button>
-                </div>
+				{/* Actions */}
+				<div className="pt-3 border-t border-border flex justify-end gap-3">
+					<button type="button" onClick={() => navigate('/queue')} className="btn-secondary">Cancel</button>
+					<button type="submit" disabled={submitting} className="btn-primary">
+						{submitting ? <><span className="spinner w-4 h-4" /> Submitting...</> : <><Gavel size={15} /> Confirm Verdict</>}
+					</button>
+				</div>
 			</form>
 		</motion.div>
 	)

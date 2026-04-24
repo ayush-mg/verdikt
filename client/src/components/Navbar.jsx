@@ -15,36 +15,53 @@ const Navbar = () => {
 
 	if (!token) return null
 
-    const navLinks = [
-        { path: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-        { path: '/submit', label: 'Submit Work', icon: <Send size={20} /> },
-        { path: '/queue', label: 'Judge Queue', icon: <Gavel size={20} /> },
-        { path: '/leaderboard', label: 'Leaderboard', icon: <Trophy size={20} /> },
-        { path: '/profile', label: 'Profile', icon: <UserCircle size={20} /> },
-    ]
+	const navLinks = [
+		{ path: '/', label: 'Dashboard', icon: <LayoutDashboard size={17} /> },
+		{ path: '/submit', label: 'Submit', icon: <Send size={17} /> },
+		{ path: '/queue', label: 'Judge Queue', icon: <Gavel size={17} /> },
+		{ path: '/leaderboard', label: 'Leaderboard', icon: <Trophy size={17} /> },
+		{ path: '/profile', label: 'Profile', icon: <UserCircle size={17} /> },
+	]
 
 	return (
-		<nav className="fixed top-0 w-full glass-panel rounded-none border-b border-gray-700/50 px-6 py-4 flex items-center justify-between z-50">
-            <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-purple to-brand-brown-light flex items-center justify-center text-white font-bold">V</div>
-                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-purple-light to-gray-300">Verdikt</span>
-            </div>
-			<div className="flex gap-2 items-center">
-                {navLinks.map((link) => (
-                    <Link 
-                        key={link.path} 
-                        to={link.path} 
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${location.pathname === link.path ? 'bg-brand-purple/20 text-brand-purple-light shadow-inner border border-brand-purple/30' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'}`}
-                    >
-                        {link.icon}
-                        <span className="font-medium text-sm">{link.label}</span>
-                    </Link>
-                ))}
+		<nav className="fixed top-0 w-full bg-surface border-b border-border z-50">
+			<div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+				{/* Logo */}
+				<Link to="/" className="flex items-center gap-2.5 group">
+					<div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center text-white font-bold text-sm">V</div>
+					<span className="text-base font-bold tracking-tight text-ink">Verdikt</span>
+				</Link>
+
+				{/* Nav links */}
+				<div className="flex items-center gap-1">
+					{navLinks.map((link) => {
+						const active = location.pathname === link.path
+						return (
+							<Link
+								key={link.path}
+								to={link.path}
+								className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+									active
+										? 'bg-accent text-white shadow-sm'
+										: 'text-ink-2 hover:bg-raised hover:text-ink'
+								}`}
+							>
+								{link.icon}
+								<span>{link.label}</span>
+							</Link>
+						)
+					})}
+				</div>
+
+				{/* Logout */}
+				<button
+					onClick={handlelogout}
+					className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-ink-3 hover:text-danger hover:bg-danger-bg transition-all duration-150"
+				>
+					<LogOut size={16} />
+					<span>Logout</span>
+				</button>
 			</div>
-            <button onClick={handlelogout} className="flex items-center gap-2 text-gray-400 hover:text-red-400 transition-colors px-4 py-2 rounded-xl hover:bg-red-400/10">
-                <LogOut size={20} />
-                <span className="font-medium text-sm">Logout</span>
-            </button>
 		</nav>
 	)
 }

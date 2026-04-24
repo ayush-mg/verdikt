@@ -2,7 +2,20 @@ import { useState, useEffect } from 'react'
 import axiosinstance from '../api/axios.js'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { CheckCircle, Clock, Send, PlusCircle } from 'lucide-react'
+import { Send, Clock, CheckCircle, PlusCircle, Star, ChevronRight } from 'lucide-react'
+
+const statusLabel = (s) => {
+	if (s === 'completed') return { label: 'Completed', cls: 'status-completed' }
+	if (s === 'under_review') return { label: 'Under Review', cls: 'status-under-review' }
+	return { label: 'Pending', cls: 'status-pending' }
+}
+
+const scoreColor = (score) => {
+	if (score === null || score === undefined) return 'text-ink-3'
+	if (score >= 4) return 'text-score'
+	if (score >= 3) return 'text-warn'
+	return 'text-danger'
+}
 
 const Dashboard = () => {
 	const [mysubmissions, setmysubmissions] = useState([])
@@ -14,7 +27,7 @@ const Dashboard = () => {
 				const res = await axiosinstance.get('/submissions/my')
 				setmysubmissions(res.data)
 			} catch (error) {
-				console.log(error)
+				console.error(error)
 			} finally {
 				setLoading(false)
 			}
@@ -22,74 +35,106 @@ const Dashboard = () => {
 		fetchsubmissions()
 	}, [])
 
+	const total = mysubmissions.length
+	const inreview = mysubmissions.filter(s => s.status !== 'completed').length
+	const completed = mysubmissions.filter(s => s.status === 'completed').length
+
 	const stats = [
-		{ label: 'Total Submissions', value: mysubmissions.length, icon: <Send className="text-brand-purple-light" /> },
-		{ label: 'Pending / Review', value: mysubmissions.filter(s => s.status !== 'completed').length, icon: <Clock className="text-brand-brown-light" /> },
-		{ label: 'Completed', value: mysubmissions.filter(s => s.status === 'completed').length, icon: <CheckCircle className="text-green-400" /> },
+		{ label: 'Total Submissions', value: total, icon: <Send size={18} className="text-ink-3" /> },
+		{ label: 'Under Review', value: inreview, icon: <Clock size={18} className="text-warn" /> },
+		{ label: 'Completed', value: completed, icon: <CheckCircle size={18} className="text-score" /> },
 	]
 
 	return (
-		<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="space-y-8">
-			<div className="flex justify-between items-end border-b border-gray-700/50 pb-6">
+		<motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+			{/* Header */}
+			<div className="flex items-center justify-between mb-8">
 				<div>
-					<h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Dashboard</h1>
-					<p className="text-gray-400 mt-2">Welcome back. Here is an overview of your activity.</p>
+					<h1 className="text-2xl font-bold text-ink">Dashboard</h1>
+					<p className="text-ink-3 text-sm mt-0.5">Your submission activity at a glance.</p>
 				</div>
 				<Link to="/submit" className="btn-primary">
-					<PlusCircle size={20} />
-					<span>Submit Work</span>
+					<PlusCircle size={16} /> New Submission
 				</Link>
 			</div>
 
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-				{stats.map((stat, i) => (
-					<motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }} className="glass-panel p-6 flex items-center gap-4">
-						<div className="p-4 bg-brand-grey-dark rounded-xl border border-gray-700/50 shadow-inner">
-							{stat.icon}
+			{/* Stats row */}
+			<div className="grid grid-cols-3 gap-4 mb-8">
+				{stats.map((s, i) => (
+					<motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="card p-5">
+						<div className="flex items-center justify-between mb-3">
+							<span className="text-xs font-semibold text-ink-3 uppercase tracking-wide">{s.label}</span>
+							{s.icon}
 						</div>
-						<div>
-							<p className="text-gray-400 text-sm font-medium">{stat.label}</p>
-							<p className="text-3xl font-bold">{stat.value}</p>
-						</div>
+						<p className="text-3xl font-bold text-ink">{s.value}</p>
 					</motion.div>
 				))}
 			</div>
 
-			<div className="pt-6">
-				<h2 className="text-2xl font-bold mb-6">Recent Submissions</h2>
+			{/* Submissions list */}
+			<div>
+				<h2 className="text-lg font-bold text-ink mb-4">Your Submissions</h2>
+
 				{loading ? (
-					<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-purple"></div></div>
+					<div className="card p-12 flex justify-center">
+						<div className="spinner w-6 h-6" />
+					</div>
 				) : mysubmissions.length === 0 ? (
-					<div className="glass-panel p-12 text-center flex flex-col items-center">
-						<Send size={48} className="text-gray-600 mb-4" />
-						<p className="text-xl text-gray-400">No submissions yet.</p>
-						<p className="text-gray-500 mt-2">Submit your first piece of work to get started.</p>
+					<div className="card p-16 text-center">
+						<Send size={36} className="text-ink-4 mx-auto mb-4" />
+						<p className="font-semibold text-ink-2">No submissions yet</p>
+						<p className="text-ink-3 text-sm mt-1">Submit your first piece of work to get peer feedback.</p>
+						<Link to="/submit" className="btn-primary mt-6 inline-flex">
+							<PlusCircle size={16} /> Submit Work
+						</Link>
 					</div>
 				) : (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{mysubmissions.map((sub, i) => (
-							<motion.div key={sub._id || i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="glass-card p-6 flex flex-col h-full">
-								<div className="flex justify-between items-start mb-4">
-									<span className="px-3 py-1 rounded-full bg-brand-grey-dark border border-gray-600 text-xs font-semibold uppercase tracking-wider text-gray-300">
-										{sub.category}
-									</span>
-									<span className={`px-3 py-1 rounded-full text-xs font-bold ${
-										sub.status === 'completed' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 
-										sub.status === 'under_review' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 
-										'bg-gray-500/20 text-gray-400 border border-gray-500/30'
-									}`}>
-										{sub.status.replace('_', ' ')}
-									</span>
-								</div>
-								<h3 className="text-lg font-bold mb-2 capitalize">{sub.type} Submission</h3>
-								<p className="text-gray-400 text-sm flex-1 line-clamp-3 mb-6">
-									{sub.contenttext || sub.contenturl || 'Image Submission'}
-								</p>
-								{sub.status === 'completed' && (
-									<Link to={`/feedback/${sub._id}`} className="btn-secondary w-full">View Feedback</Link>
-								)}
-							</motion.div>
-						))}
+					<div className="flex flex-col gap-3">
+						{mysubmissions.map((sub, i) => {
+							const { label, cls } = statusLabel(sub.status)
+							const hasScore = sub.aggregatedscore !== null && sub.aggregatedscore !== undefined
+							return (
+								<motion.div
+									key={sub._id}
+									initial={{ opacity: 0, y: 6 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: i * 0.05 }}
+								>
+									<Link to={`/submission/${sub._id}`} className="card-hover p-5 flex items-center gap-4 group block">
+										<div className="flex-1 min-w-0">
+											<div className="flex items-center gap-2 mb-1.5">
+												<span className={cls}>{label}</span>
+												<span className="badge-neutral capitalize">{sub.category}</span>
+												<span className="badge-neutral capitalize">{sub.type}</span>
+											</div>
+											<p className="text-sm text-ink-2 line-clamp-2 font-mono">
+												{sub.contenttext || sub.contenturl || 'Image submission'}
+											</p>
+										</div>
+										<div className="flex items-center gap-6 flex-shrink-0">
+											{/* Judgment count */}
+											<div className="text-center">
+												<p className="text-xs text-ink-3 mb-0.5">Judges</p>
+												<p className="font-bold text-ink">{sub.judgmentcount || 0}<span className="text-ink-3 font-normal">/5</span></p>
+											</div>
+											{/* Live score */}
+											<div className="text-center">
+												<p className="text-xs text-ink-3 mb-0.5">Score</p>
+												<p className={`font-bold text-lg ${hasScore ? scoreColor(sub.aggregatedscore) : 'text-ink-4'}`}>
+													{hasScore ? sub.aggregatedscore.toFixed(1) : '—'}
+												</p>
+											</div>
+											{/* CTA */}
+											{sub.status === 'completed' ? (
+												<span className="btn-secondary text-xs">View Feedback <ChevronRight size={14} /></span>
+											) : (
+												<ChevronRight size={18} className="text-ink-4 group-hover:text-ink transition-colors" />
+											)}
+										</div>
+									</Link>
+								</motion.div>
+							)
+						})}
 					</div>
 				)}
 			</div>

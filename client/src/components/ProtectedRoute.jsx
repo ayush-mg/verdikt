@@ -5,14 +5,14 @@ import Navbar from './Navbar.jsx'
 
 const ProtectedRoute = ({ children }) => {
 	const { token } = useContext(AuthContext)
-	
 	if (!token) return <Navigate to="/login" />
-	
 	return (
-		<div className="min-h-screen bg-brand-grey-dark flex flex-col">
+		<div className="min-h-screen bg-bg">
 			<Navbar />
-			<main className="flex-1 pt-24 pb-12 px-6 max-w-7xl mx-auto w-full">
-				{children}
+			<main className="pt-14">
+				<div className="max-w-7xl mx-auto px-6 py-8">
+					{children}
+				</div>
 			</main>
 		</div>
 	)
