@@ -42,4 +42,27 @@ router.get('/my',authmiddleware,async(req,res)=>{
 		res.status(500).json({message:'ServerError'})
 	}
 })
+router.get('/queue',authmiddleware,async(req,res)=>{
+	try{
+		const queue=await Submission.find({
+			assignedjudgeids:req.user.userid,
+			status:'underreview'
+		})
+		res.status(200).json(queue)
+	}catch(error){
+		res.status(500).json({message:'ServerError'})
+	}
+})
+router.get('/:id/feedback',authmiddleware,async(req,res)=>{
+	try{
+		const submission=await Submission.findById(req.params.id)
+		if(submission.status!=='completed'){
+			return res.status(403).json({message:'FeedbackNotUnlocked'})
+		}
+		const judgments=await Judgment.find({submissionid:req.params.id})
+		res.status(200).json({submission,judgments})
+	}catch(error){
+		res.status(500).json({message:'ServerError'})
+	}
+})
 module.exports=router
