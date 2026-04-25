@@ -41,6 +41,7 @@ const calculatemerit=async(submissionid)=>{
 		if(allsubmissions.length>0){
 			const totaluserscore=allsubmissions.reduce((sum,s)=>sum+(s.aggregatedscore||0),0)
 			submitter.submissionmeritscore=totaluserscore/allsubmissions.length
+			submitter.submissionmerithistory.push({score:submitter.submissionmeritscore,date:new Date()})
 			await submitter.save()
 		}
 	}
