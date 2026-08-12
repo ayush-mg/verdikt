@@ -13,11 +13,11 @@ The project is built as a full-stack application with:
 
 This project is designed to be hosted on GitHub Pages for the frontend.
 
-- The React client can be deployed directly on GitHub Pages
-- The backend API must remain separate because GitHub Pages cannot host a Node.js/Express server
+- The React client is deployed on GitHub Pages
+- The backend API is hosted separately because GitHub Pages cannot run a Node.js/Express server
 - The frontend connects to the live backend through the `VITE_API_URL` environment variable
 
-> This project is not intended for Vercel, Netlify, or other full-stack hosting in this setup. The deployment target is GitHub Pages for the frontend only.
+> This setup is built for GitHub Pages on the frontend and Render for the backend.
 
 ## Features
 
@@ -63,7 +63,7 @@ verdikt/
 │   ├── index.html
 │   ├── package.json
 │   ├── vite.config.js
-│   └── README.md (optional, if you want front-end-only docs)
+│   └── README.md
 ├── server/
 │   ├── middleware/
 │   ├── models/
@@ -75,9 +75,12 @@ verdikt/
 │   ├── unlockjob.js
 │   ├── wipe.js
 │   └── package.json
+├── .github/
+│   └── workflows/
+│       └── deploy-pages.yml
 ├── .gitignore
 ├── README.md
-└── package.json (optional workspace config if added later)
+└── package.json
 ```
 
 ## Prerequisites
@@ -118,9 +121,12 @@ Create a `.env` file inside `server/`:
 ```env
 MONGOURI=mongodb://localhost:27017/verdikt
 PORT=5000
-```
+JWTSECRET=replace-with-your-secret-key
 
-If you are using MongoDB Atlas, use your connection string instead.
+CLOUDINARYNAME=your-cloudinary-name
+CLOUDINARYAPIKEY=your-cloudinary-api-key
+CLOUDINARYAPISECRET=your-cloudinary-api-secret
+```
 
 Create a `.env` file inside `client/`:
 
@@ -230,15 +236,10 @@ In GitHub, go to:
 - Repository → Settings → Pages
 - Source → GitHub Actions
 
-<<<<<<< HEAD
-```env
-VITE_API_URL=(https://verdikt-1.onrender.com)
-=======
 Then add a repository secret named:
 
 ```text
 VITE_API_URL
->>>>>>> 0654dd4 (Update deployment README)
 ```
 
 with the value:
@@ -296,28 +297,6 @@ CLOUDINARYAPISECRET=your-cloudinary-api-secret
 VITE_API_URL=http://localhost:5000/api
 ```
 
-## Suggested Environment Template
-
-You can create these example files for contributors:
-
-### `server/.env.example`
-
-```env
-MONGOURI=mongodb://localhost:27017/verdikt
-PORT=5000
-JWTSECRET=replace-with-your-secret-key
-
-CLOUDINARYNAME=your-cloudinary-name
-CLOUDINARYAPIKEY=your-cloudinary-api-key
-CLOUDINARYAPISECRET=your-cloudinary-api-secret
-```
-
-### `client/.env.example`
-
-```env
-VITE_API_URL=http://localhost:5000/api
-```
-
 ## GitHub Repository Best Practices
 
 To keep the repository clean and deployment-friendly:
@@ -328,16 +307,6 @@ To keep the repository clean and deployment-friendly:
 - Document environment variables clearly in this README
 - Keep frontend and backend dependency installation separated
 
-## Suggested Environment Template
-
-You can create these example files for contributors:
-
-### `server/.env.example`
-
-```env
-MONGOURI=mongodb://localhost:27017/verdikt
-PORT=5000
-```
 
 ### `client/.env.example`
 
