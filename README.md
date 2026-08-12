@@ -11,11 +11,19 @@ The project is built as a full-stack application with:
 
 ## GitHub Pages Deployment
 
-This project is designed to be hosted on GitHub Pages for the frontend.
+This project is deployed with the following live setup:
 
-- The React client is deployed on GitHub Pages
-- The backend API is hosted separately because GitHub Pages cannot run a Node.js/Express server
-- The frontend connects to the live backend through the `VITE_API_URL` environment variable
+- Frontend: GitHub Pages
+- Backend API: Render
+- Database: MongoDB Atlas
+
+Live frontend URL:
+
+```text
+https://ayush-mg.github.io/verdikt/
+```
+
+The frontend connects to the live backend through the `VITE_API_URL` environment variable.
 
 > This setup is built for GitHub Pages on the frontend and Render for the backend.
 
@@ -267,13 +275,14 @@ If your site is on a custom domain or root URL, use `base: '/'` instead.
 
 ## Final deployment checklist
 
-Before publishing:
+This project is successfully deployed in production:
 
 - backend is live on Render
 - MongoDB Atlas is connected
 - the Render API URL is configured as `VITE_API_URL`
 - GitHub Pages is enabled with GitHub Actions
 - the frontend build succeeds with `npm run build`
+- live frontend is available at https://ayush-mg.github.io/verdikt/
 
 ## Suggested Environment Template
 
