@@ -165,28 +165,59 @@ The output is generated in:
 client/dist/
 ```
 
-If you are deploying the full-stack app on a Node server instead of separating frontend/backend, the Express server in `server/server.js` already serves the static build from `../client/dist`.
-
 ## Deployment Guide
 
-### GitHub Pages deployment for the frontend
+This app is designed to use the following production setup:
 
-This repository is set up for GitHub Pages hosting of the frontend app.
+- Frontend: GitHub Pages
+- Backend API: Render
+- Database: MongoDB Atlas
 
-#### 1. Build the frontend
+### 1. Deploy the backend on Render
+
+Use Render with the backend folder as the app root:
+
+- Root Directory: `server`
+- Build Command:
 
 ```bash
-cd client
 npm install
-npm run build
 ```
 
-#### 2. Deploy to GitHub Pages
+- Start Command:
 
-Use one of these options:
+```bash
+npm start
+```
 
-- GitHub repository settings → Pages → Source: GitHub Actions
-- Or push the built `client/dist` output to a Pages branch if you prefer a static branch workflow
+Set the backend environment variables:
+
+```env
+MONGOURI=mongodb+srv://<username>:<password>@cluster.mongodb.net/verdikt
+PORT=10000
+JWTSECRET=your-secret-key
+CLOUDINARYNAME=your-cloudinary-name
+CLOUDINARYAPIKEY=your-cloudinary-api-key
+CLOUDINARYAPISECRET=your-cloudinary-api-secret
+```
+
+After deployment, Render will give you a public API URL such as:
+
+```text
+https://verdikt-1.onrender.com
+```
+
+### 2. Set the frontend API URL
+
+The frontend must use the live backend URL:
+
+```env
+VITE_API_URL=https://verdikt-1.onrender.com/api
+```
+
+This is required so the React app can authenticate and call the API when hosted on GitHub Pages.
+
+### 3. Deploy the frontend to GitHub Pages
 
 This project includes a GitHub Actions workflow for deployment at:
 
@@ -194,66 +225,76 @@ This project includes a GitHub Actions workflow for deployment at:
 .github/workflows/deploy-pages.yml
 ```
 
-#### 3. Set the frontend API URL
+In GitHub, go to:
 
-Before building for production, set the live backend URL:
+- Repository → Settings → Pages
+- Source → GitHub Actions
 
+<<<<<<< HEAD
 ```env
 VITE_API_URL=(https://verdikt-1.onrender.com)
+=======
+Then add a repository secret named:
+
+```text
+VITE_API_URL
+>>>>>>> 0654dd4 (Update deployment README)
 ```
 
-This is required so the frontend can authenticate and call the API when deployed on GitHub Pages.
+with the value:
 
-#### 4. GitHub Pages base path
+```text
+https://verdikt-1.onrender.com/api
+```
 
-If your repository is published under a project path such as `https://username.github.io/verdikt/`, add a base path in `vite.config.js`:
+### 4. GitHub Pages base path
+
+If your repo is `username/verdikt`, add a base path in `vite.config.js`:
 
 ```js
-// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   base: '/verdikt/',
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
 })
 ```
 
-If you use a custom domain or a root project page, you may set `base: '/'` instead.
+If your site is on a custom domain or root URL, use `base: '/'` instead.
 
-### Backend hosting
-
-The backend must be hosted separately from GitHub Pages because GitHub Pages does not support Node.js server execution.
-
-Recommended setup:
-
-- Host the Express API on any Node-capable platform
-- Keep MongoDB in MongoDB Atlas
-- Point the frontend to the deployed backend URL through `VITE_API_URL`
-
-#### Example backend environment variables
-
-```env
-MONGOURI=mongodb+srv://<username>:<password>@cluster.mongodb.net/verdikt
-PORT=5000
-JWTSECRET=your-secret-key
-```
-
-#### Example frontend environment variables for GitHub Pages
-
-```env
-VITE_API_URL=https://your-backend-url.com/api
-```
-
-## GitHub Pages setup checklist
+## Final deployment checklist
 
 Before publishing:
 
-- ensure the client build succeeds with `npm run build`
-- set GitHub repository Pages source to GitHub Actions
-- add the production `VITE_API_URL` value in repository secrets if using the workflow
-- verify the repo base path matches the live GitHub Pages URL
-- keep the backend running at the API URL you configured
+- backend is live on Render
+- MongoDB Atlas is connected
+- the Render API URL is configured as `VITE_API_URL`
+- GitHub Pages is enabled with GitHub Actions
+- the frontend build succeeds with `npm run build`
+
+## Suggested Environment Template
+
+You can create these example files for contributors:
+
+### `server/.env.example`
+
+```env
+MONGOURI=mongodb://localhost:27017/verdikt
+PORT=5000
+JWTSECRET=replace-with-your-secret-key
+
+CLOUDINARYNAME=your-cloudinary-name
+CLOUDINARYAPIKEY=your-cloudinary-api-key
+CLOUDINARYAPISECRET=your-cloudinary-api-secret
+```
+
+### `client/.env.example`
+
+```env
+VITE_API_URL=http://localhost:5000/api
+```
 
 ## Suggested Environment Template
 
