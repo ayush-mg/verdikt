@@ -199,7 +199,7 @@ This project includes a GitHub Actions workflow for deployment at:
 Before building for production, set the live backend URL:
 
 ```env
-VITE_API_URL=https://your-backend-url.com/api
+VITE_API_URL=(https://verdikt-1.onrender.com)
 ```
 
 This is required so the frontend can authenticate and call the API when deployed on GitHub Pages.
