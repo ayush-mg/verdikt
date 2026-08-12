@@ -2,7 +2,6 @@ require('dotenv').config()
 const express=require('express')
 const mongoose=require('mongoose')
 const cors=require('cors')
-const path=require('path')
 const authroutes=require('./routes/authroutes.js')
 const submissionroutes=require('./routes/submissionroutes.js')
 const judgementroutes=require('./routes/judgementroutes.js')
@@ -22,9 +21,10 @@ mongoose.connect(dburi).then(() => {
 	console.error('MongoDB connection error:', error)
 })
 startcron()
-app.use(express.static(path.join(__dirname,'../client/dist')))
-app.get(/(.*)/,(req,res)=>{
-	res.sendFile(path.join(__dirname,'../client/dist/index.html'))
+
+app.get('/health', (req, res) => {
+	res.json({ status: 'ok' })
 })
+
 const portnum=process.env.PORT||5000
 app.listen(portnum,()=>console.log('Server running on port '+portnum))
